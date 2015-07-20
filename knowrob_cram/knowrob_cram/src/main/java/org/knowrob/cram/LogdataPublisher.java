@@ -48,6 +48,9 @@ import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
+
 import javax.vecmath.Vector3d;
 
 import designator_integration_msgs.KeyValuePair;
@@ -103,8 +106,13 @@ public class LogdataPublisher extends AbstractNodeMain {
 			final StringTokenizer s1 = new StringTokenizer(designatorId, "#");
 			s1.nextToken();
 			designatorId= s1.nextToken();
-
-			org.knowrob.interfaces.mongo.types.Designator d1 = mdb.getDesignatorByID(designatorId);
+			
+			DBCursor dbObj = mdb.query("logged_designators",
+					new String[]{"designator._id"},
+					new String[]{"is"},
+					new Object[]{designatorId});
+			org.knowrob.interfaces.mongo.types.Designator d1 = mdb.designator((BasicDBObject)dbObj.next());
+			if(d1==null) return false;
 			publishDesignator(d1);
 			return true;
 		}
